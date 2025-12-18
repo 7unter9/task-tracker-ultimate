@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#3b82f6">
+    <title>Task Tracker Ultimate - All Features</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .thumbnail { width: 60px; height: 60px; object-fit: cover; }
+        .pdf-icon, .text-icon { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: white; font-weight: bold; font-size: 10px; }
+        .pdf-icon { background: #ef4444; }
+        .text-icon { background: #8b5cf6; }
+        .subtask { margin-left: 30px; font-size: 0.9em; }
+        .timer-circle { stroke-dasharray: 283; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
+        .calendar-day { aspect-ratio: 1; min-height: 80px; }
+        .calendar-day.today { border: 2px solid #3b82f6; }
+        .calendar-day.has-tasks { background: #dbeafe; }
+        .video-preview { max-width: 60px; max-height: 60px; }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+
+```
+<div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 text-center">
+    <p class="font-bold">🎉 ULTIMATE EDITION: Subtasks • Timer • Calendar • Camera • Compression • 100MB</p>
+</div>
+
+<div class="max-w-7xl mx-auto p-3 sm:p-6">
+    
+    <!-- View Switcher -->
+    <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
+        <div class="flex flex-wrap gap-2">
+            <button onclick="switchView('list')" id="viewList" class="px-4 py-2 rounded-lg bg-blue-500 text-white font-medium">
+                📋 List
+            </button>
+            <button onclick="switchView('calendar')" id="viewCalendar" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium">
+                📅 Calendar
+            </button>
+            <button onclick="switchView('timer')" id="viewTimer" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium">
+                ⏱️ Timer
+            </button>
+            <button onclick="openManageData()" class="ml-auto px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium">
+                ⚙️ Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- LIST VIEW -->
+    <div id="listView" class="space-y-4">
+        <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                ✅ Task Tracker Ultimate
+            </h1>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">📅 Select Date</label>
+                <input type="date" id="dateSelector" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <div class="bg-blue-50 rounded-lg p-3 text-center">
+                    <div class="text-xl font-bold text-blue-600" id="totalTasks">0</div>
+                    <div class="text-xs text-gray-600">Total</div>
+                </div>
+                <div class="bg-green-50 rounded-lg p-3 text-center">
+                    <div class="text-xl font-bold text-green-600" id="completedTasks">0</div>
+                    <div class="text-xs text-gray-600">Done</div>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-3 text-center">
+                    <div class="text-xl font-bold text-purple-600" id="progressRate">0%</div>
+                    <div class="text-xs text-gray-600">Progress</div>
+                </div>
+            </div>
+
+            <!-- Add Task Form -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                <h3 class="font-semibold mb-3">➕ Add New Task</h3>
+                <input type="text" id="newTaskInput" placeholder="What needs to be done?" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 mb-3">
+                
+                <!-- File Upload Options -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                    <button onclick="document.getElementById('fileInput').click()" class="bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-sm font-medium">
+                        📎 Files
+                    </button>
+                    <button onclick="capturePhoto()" class="bg-green-100 text-green-700 px-3 py-2 rounded-lg text-sm font-medium">
+                        📸 Camera
+                    </button>
+                    <button onclick="captureVideo()" class="bg-purple-100 text-purple-700 px-3 py-2 rounded-lg text-sm font-medium">
+                        🎥 Video
+                    </button>
+                    <button onclick="recordAudio()" class="bg-orange-100 text-orange-700 px-3 py-2 rounded-lg text-sm font-medium">
+                        🎤 Audio
+                    </button>
+                </div>
+
+                <input type="file" id="fileInput" accept="image/*,.pdf,.txt,video/*,audio/*" multiple class="hidden">
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+                <input type="file" id="videoInput" accept="video/*" capture="camcorder" class="hidden">
+
+                <div id="filePreview" class="grid grid-cols-4 gap-2 mb-3"></div>
+                
+                <div id="uploadProgress" class="hidden mb-3">
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div id="progressBar" class="bg-blue-500 h-full rounded-full transition-all" style="width: 0%"></div>
+                    </div>
+                    <p class="text-xs text-center mt-1" id="progressText">Uploading...</p>
+                </div>
+
+                <button id="addTaskBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium">
+                    ➕ Add Task
+                </button>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="exportPDF()" class="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-3 rounded-lg font-medium">
+                    📄 Export PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Task List -->
+        <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
+            <h2 class="text-xl font-semibold mb-4" id="taskListTitle">Tasks</h2>
+            <div id="taskList"></div>
+        </div>
+    </div>
+
+    <!-- CALENDAR VIEW -->
+    <div id="calendarView" class="hidden">
+        <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
+                <button onclick="changeMonth(-1)" class="px-4 py-2 bg-gray-100 rounded-lg">◀</button>
+                <h2 class="text-2xl font-bold" id="calendarTitle">Calendar</h2>
+                <button onclick="changeMonth(1)" class="px-4 py-2 bg-gray-100 rounded-lg">▶</button>
+            </div>
+            <div class="grid grid-cols-7 gap-1" id="calendarGrid"></div>
+            
+            <div class="mt-6 bg-blue-50 rounded-lg p-4">
+                <h3 class="font-bold mb-2">Selected Date Tasks:</h3>
+                <div id="calendarTaskList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TIMER VIEW (Pomodoro) -->
+    <div id="timerView" class="hidden">
+        <div class="bg-white rounded-2xl shadow-xl p-6 max-w-2xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-6">⏱️ Pomodoro Timer</h2>
+            
+            <div class="text-center mb-8">
+                <svg width="200" height="200" class="mx-auto">
+                    <circle cx="100" cy="100" r="45" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+                    <circle id="timerCircle" class="timer-circle" cx="100" cy="100" r="45" fill="none" stroke="#3b82f6" stroke-width="10" transform="rotate(-90 100 100)"/>
+                </svg>
+                <div class="text-6xl font-bold mt-4" id="timerDisplay">25:00</div>
+                <div class="text-gray-600 mt-2" id="timerMode">Focus Time</div>
+            </div>
+
+            <div class="flex gap-4 justify-center mb-6">
+                <button onclick="startTimer()" id="startBtn" class="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg">
+                    ▶ Start
+                </button>
+                <button onclick="pauseTimer()" id="pauseBtn" class="hidden bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 rounded-xl font-bold text-lg">
+                    ⏸ Pause
+                </button>
+                <button onclick="resetTimer()" class="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg">
+                    🔄 Reset
+                </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <button onclick="setTimerMode('focus')" class="bg-blue-100 text-blue-700 px-4 py-3 rounded-lg font-medium">
+                    🎯 Focus (25m)
+                </button>
+                <button onclick="setTimerMode('short')" class="bg-green-100 text-green-700 px-4 py-3 rounded-lg font-medium">
+                    ☕ Break (5m)
+                </button>
+                <button onclick="setTimerMode('long')" class="bg-purple-100 text-purple-700 px-4 py-3 rounded-lg font-medium">
+                    🌴 Long (15m)
+                </button>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h3 class="font-bold mb-3">Select Task to Work On:</h3>
+                <div id="timerTaskList" class="space-y-2"></div>
+            </div>
+
+            <div class="mt-6 bg-blue-50 rounded-lg p-4">
+                <h3 class="font-bold mb-2">📊 Today's Stats:</h3>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                        <div class="text-2xl font-bold text-blue-600" id="pomodorosToday">0</div>
+                        <div class="text-sm text-gray-600">Pomodoros</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-green-600" id="focusTimeToday">0m</div>
+                        <div class="text-sm text-gray-600">Focus Time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modals -->
+<div id="attachmentModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4" onclick="closeModal()">
+    <div class="relative max-w-4xl w-full" onclick="event.stopPropagation()">
+        <button onclick="closeModal()" class="absolute -top-10 right-0 bg-white rounded-full w-10 h-10 text-2xl">✕</button>
+        <div id="modalContent" class="bg-white rounded-lg overflow-auto max-h-[90vh]"></div>
+    </div>
+</div>
+
+<div id="subtaskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) closeSubtaskModal()">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full" onclick="event.stopPropagation()">
+        <h3 class="text-xl font-bold mb-4">Add Subtasks</h3>
+        <div id="subtaskList" class="space-y-2 mb-4"></div>
+        <input type="text" id="newSubtaskInput" placeholder="New subtask..." class="w-full px-4 py-2 border rounded-lg mb-3">
+        <div class="flex gap-2">
+            <button onclick="addSubtask()" class="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg">Add</button>
+            <button onclick="closeSubtaskModal()" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">Done</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+    let tasks = [], selectedDate = new Date().toISOString().split('T')[0], pendingFiles = [];
+    let currentView = 'list', calendarDate = new Date(), currentTaskForSubtasks = null;
+    let timerInterval = null, timerSeconds = 1500, timerRunning = false, timerMode = 'focus';
+    let pomodorosToday = 0, focusTimeToday = 0, currentTimerTask = null;
+
+    document.getElementById('dateSelector').value = selectedDate;
+    document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+    document.getElementById('cameraInput').addEventListener('change', handleCameraCapture);
+    document.getElementById('videoInput').addEventListener('change', handleVideoCapture);
+    document.getElementById('addTaskBtn').addEventListener('click', addTask);
+    document.getElementById('newTaskInput').addEventListener('keypress', (e) => { if(e.key==='Enter') addTask(); });
+    document.getElementById('dateSelector').addEventListener('change', (e) => { selectedDate = e.target.value; loadTasks(); });
+
+    loadTasks();
+    loadPomodoroStats();
+    updateTimerDisplay();
+
+    function switchView(view) {
+        currentView = view;
+        document.getElementById('listView').classList.toggle('hidden', view !== 'list');
+        document.getElementById('calendarView').classList.toggle('hidden', view !== 'calendar');
+        document.getElementById('timerView').classList.toggle('hidden', view !== 'timer');
+        
+        ['List', 'Calendar', 'Timer'].forEach(v => {
+            const btn = document.getElementById('view' + v);
+            if(v.toLowerCase() === view) {
+                btn.classList.add('bg-blue-500', 'text-white');
+                btn.classList.remove('bg-gray-200', 'text-gray-700');
+            } else {
+                btn.classList.remove('bg-blue-500', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            }
+        });
+
+        if(view === 'calendar') renderCalendar();
+        if(view === 'timer') updateTimerTaskList();
+    }
+
+    async function handleFileSelect(e) {
+        await processFiles(Array.from(e.target.files));
+    }
+
+    async function processFiles(files) {
+        for(let file of files) {
+            if(file.size > MAX_FILE_SIZE) {
+                alert(`File ${file.name} exceeds 100MB limit`);
+                continue;
+            }
+
+            document.getElementById('uploadProgress').classList.remove('hidden');
+            
+            try {
+                let data = await fileToBase64(file);
+                
+                // Compress images
+                if(file.type.startsWith('image/') && file.size > 1024 * 1024) {
+                    data = await compressImage(data, 0.7);
+                }
+
+                pendingFiles.push({
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    data: data
+                });
+
+                document.getElementById('progressText').textContent = `✅ ${file.name} uploaded!`;
+            } catch(err) {
+                alert(`Error: ${err.message}`);
+            }
+        }
+        
+        setTimeout(() => document.getElementById('uploadProgress').classList.add('hidden'), 1000);
+        updateFilePreview();
+    }
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function compressImage(dataUrl, quality) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width, height = img.height;
+                
+                // Resize if too large
+                if(width > 1920) {
+                    height = (height * 1920) / width;
+                    width = 1920;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.src = dataUrl;
+        });
+    }
+
+    function capturePhoto() {
+        document.getElementById('cameraInput').click();
+    }
+
+    function handleCameraCapture(e) {
+        processFiles(Array.from(e.target.files));
+    }
+
+    function captureVideo() {
+        document.getElementById('videoInput').click();
+    }
+
+    function handleVideoCapture(e) {
+        processFiles(Array.from(e.target.files));
+    }
+
+    async function recordAudio() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            const chunks = [];
+
+            mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.onload = () => {
+                    pendingFiles.push({
+                        name: 'recording.webm',
+                        type: 'audio/webm',
+                        size: blob.size,
+                        data: reader.result
+                    });
+                    updateFilePreview();
+                };
+                reader.readAsDataURL(blob);
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            alert('🎤 Recording... Click OK to stop');
+            setTimeout(() => mediaRecorder.stop(), 5000); // 5 second recording
+        } catch(err) {
+            alert('Microphone access denied or not available');
+        }
+    }
+
+    function updateFilePreview() {
+        const preview = document.getElementById('filePreview');
+        if(!pendingFiles.length) { preview.innerHTML = ''; return; }
+        
+        preview.innerHTML = pendingFiles.map((f, i) => {
+            let display = '';
+            if(f.type.startsWith('image/')) {
+                display = `<img src="${f.data}" class="thumbnail rounded-lg">`;
+            } else if(f.type.startsWith('video/')) {
+                display = `<video src="${f.data}" class="video-preview rounded-lg"></video>`;
+            } else if(f.type === 'application/pdf') {
+                display = `<div class="pdf-icon">PDF</div>`;
+            } else if(f.type.startsWith('audio/')) {
+                display = `<div class="text-icon">🎵</div>`;
+            } else {
+                display = `<div class="text-icon">TXT</div>`;
+            }
+            return `<div class="relative">${display}<button onclick="removePendingFile(${i})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs">✕</button></div>`;
+        }).join('');
+    }
+
+    function removePendingFile(i) {
+        pendingFiles.splice(i, 1);
+        updateFilePreview();
+    }
+
+    function addTask() {
+        const text = document.getElementById('newTaskInput').value.trim();
+        if(!text) return;
+
+        tasks.push({
+            id: Date.now(),
+            text: text,
+            completed: false,
+            createdAt: new Date().toISOString(),
+            attachments: [...pendingFiles],
+            subtasks: [],
+            timeSpent: 0
+        });
+
+        saveTasks();
+        document.getElementById('newTaskInput').value = '';
+        pendingFiles = [];
+        document.getElementById('fileInput').value = '';
+        updateFilePreview();
+    }
+
+    function loadTasks() {
+        const saved = localStorage.getItem(`tasks-${selectedDate}`);
+        tasks = saved ? JSON.parse(saved) : [];
+        renderTasks();
+        updateStats();
+        document.getElementById('taskListTitle').textContent = `Tasks for ${new Date(selectedDate).toLocaleDateString()}`;
+    }
+
+    function saveTasks() {
+        localStorage.setItem(`tasks-${selectedDate}`, JSON.stringify(tasks));
+        renderTasks();
+        updateStats();
+    }
+
+    function renderTasks() {
+        const list = document.getElementById('taskList');
+        if(!tasks.length) {
+            list.innerHTML = '<div class="text-center py-8 text-gray-400"><p>No tasks yet</p></div>';
+            return;
+        }
+
+        list.innerHTML = tasks.map(t => `
+            <div class="p-4 rounded-lg border-2 mb-3 ${t.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}">
+                <div class="flex items-start gap-3">
+                    <button onclick="toggleTask(${t.id})" class="mt-1 text-2xl">${t.completed ? '✅' : '⭕'}</button>
+                    <div class="flex-1">
+                        <span class="block font-medium ${t.completed ? 'line-through text-gray-500' : ''}">${escapeHtml(t.text)}</span>
+                        
+                        ${t.subtasks && t.subtasks.length ? `
+                            <div class="subtask mt-2 space-y-1">
+                                ${t.subtasks.map((st, idx) => `
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="toggleSubtask(${t.id}, ${idx})" class="text-sm">${st.completed ? '✓' : '○'}</button>
+                                        <span class="text-sm ${st.completed ? 'line-through text-gray-400' : 'text-gray-600'}">${escapeHtml(st.text)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${t.attachments?.length ? `
+                            <div class="flex gap-2 mt-2 flex-wrap">
+                                ${t.attachments.map((a, i) => {
+                                    if(a.type.startsWith('image/')) {
+                                        return `<img src="${a.data}" class="thumbnail cursor-pointer rounded" onclick="viewAttachment(${t.id}, ${i})">`;
+                                    } else if(a.type.startsWith('video/')) {
+                                        return `<video src="${a.data}" class="video-preview cursor-pointer rounded" onclick="viewAttachment(${t.id}, ${i})"></video>`;
+                                    } else if(a.type === 'application/pdf') {
+                                        return `<div class="pdf-icon cursor-pointer" onclick="viewAttachment(${t.id}, ${i})">PDF</div>`;
+                                    } else if(a.type.startsWith('audio/')) {
+                                        return `<div class="text-icon cursor-pointer" onclick="viewAttachment(${t.id}, ${i})">🎵</div>`;
+                                    } else {
+                                        return `<div class="text-icon cursor-pointer" onclick="viewAttachment(${t.id}, ${i})">TXT</div>`;
+                                    }
+                                }).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${t.timeSpent ? `<div class="text-xs text-gray-500 mt-1">⏱️ ${Math.round(t.timeSpent / 60)}m spent</div>` : ''}
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="openSubtaskModal(${t.id})" class="text-blue-500 text-sm px-2 py-1 hover:bg-blue-50 rounded" title="Add subtasks">
+                            ➕📋
+                        </button>
+                        <button onclick="deleteTask(${t.id})" class="text-red-500 text-sm px-2 py-1 hover:bg-red-50 rounded">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function toggleTask(id) {
+        tasks = tasks.map(t => t.id === id ? {...t, completed: !t.completed} : t);
+        saveTasks();
+    }
+
+    function toggleSubtask(taskId, subtaskIdx) {
+        tasks = tasks.map(t => {
+            if(t.id === taskId) {
+                const subtasks = [...t.subtasks];
+                subtasks[subtaskIdx] = {...subtasks[subtaskIdx], completed: !subtasks[subtaskIdx].completed};
+                return {...t, subtasks};
+            }
+            return t;
+        });
+        saveTasks();
+    }
+
+    function deleteTask(id) {
+        if(confirm('Delete this task?')) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+        }
+    }
+
+    function openSubtaskModal(taskId) {
+        currentTaskForSubtasks = taskId;
+        const task = tasks.find(t => t.id === taskId);
+        const list = document.getElementById('subtaskList');
+        
+        if(task.subtasks && task.subtasks.length) {
+            list.innerHTML = task.subtasks.map((st, idx) => `
+                <div class="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                    <span class="flex-1">${escapeHtml(st.text)}</span>
+                    <button onclick="removeSubtask(${idx})" class="text-red-500 text-sm">✕</button>
+                </div>
+            `).join('');
+        } else {
+            list.innerHTML = '<p class="text-gray-400 text-sm">No subtasks yet</p>';
+        }
+        
+        document.getElementById('subtaskModal').classList.remove('hidden');
+    }
+
+    function closeSubtaskModal() {
+        document.getElementById('subtaskModal').classList.add('hidden');
+        document.getElementById('newSubtaskInput').value = '';
+        currentTaskForSubtasks = null;
+    }
+
+    function addSubtask() {
+        const text = document.getElementById('newSubtaskInput').value.trim();
+        if(!text || !currentTaskForSubtasks) return;
+
+        tasks = tasks.map(t => {
+            if(t.id === currentTaskForSubtasks) {
+                const subtasks = t.subtasks || [];
+                subtasks.push({ text, completed: false });
+                return {...t, subtasks};
+            }
+            return t;
+        });
+
+        saveTasks();
+        document.getElementById('newSubtaskInput').value = '';
+        openSubtaskModal(currentTaskForSubtasks);
+    }
+
+    function removeSubtask(idx) {
+        tasks = tasks.map(t => {
+            if(t.id === currentTaskForSubtasks) {
+                const subtasks = [...t.subtasks];
+                subtasks.splice(idx, 1);
+                return {...t, subtasks};
+            }
+            return t;
+        });
+        saveTasks();
+        openSubtaskModal(currentTaskForSubtasks);
+    }
+
+    function updateStats() {
+        const done = tasks.filter(t => t.completed).length;
+        document.getElementById('totalTasks').textContent = tasks.length;
+        document.getElementById('completedTasks').textContent = done;
+        document.getElementById('progressRate').textContent = tasks.length ? Math.round((done/tasks.length)*100) + '%' : '0%';
+    }
+
+    function viewAttachment(taskId, idx) {
+        const task = tasks.find(t => t.id === taskId);
+        const att = task.attachments[idx];
+        const modal = document.getElementById('modalContent');
+        
+        if(att.type.startsWith('image/')) {
+            modal.innerHTML = `<img src="${att.data}" class="max-w-full">`;
+        } else if(att.type.startsWith('video/')) {
+            modal.innerHTML = `<video src="${att.data}" controls class="max-w-full"></video>`;
+        } else if(att.type.startsWith('audio/')) {
+            modal.innerHTML = `<audio src="${att.data}" controls class="w-full p-4"></audio>`;
+        } else if(att.type === 'application/pdf') {
+            modal.innerHTML = `<iframe src="${att.data}" class="w-full h-[80vh]"></iframe>`;
+        } else {
+            fetch(att.data).then(r => r.text()).then(txt => {
+                modal.innerHTML = `<pre class="p-4 text-sm overflow-auto">${escapeHtml(txt)}</pre>`;
+            });
+        }
+        
+        document.getElementById('attachmentModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('attachmentModal').classList.add('hidden');
+    }
+
+    // CALENDAR VIEW
+    function renderCalendar() {
+        const year = calendarDate.getFullYear();
+        const month = calendarDate.getMonth();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        document.getElementById('calendarTitle').textContent = 
+            calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        
+        const grid = document.getElementById('calendarGrid');
+        let html = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => 
+            `<div class="text-center font-bold text-sm text-gray-600 p-2">${d}</div>`
+        ).join('');
+        
+        for(let i = 0; i < firstDay; i++) {
+            html += '<div></div>';
+        }
+        
+        for(let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const isToday = dateStr === new Date().toISOString().split('T')[0];
+            const hasTasks = localStorage.getItem(`tasks-${dateStr}`);
+            
+            html += `
+                <div onclick="selectCalendarDate('${dateStr}')" 
+                     class="calendar-day border rounded p-2 cursor-pointer hover:bg-blue-50 ${isToday ? 'today' : ''} ${hasTasks ? 'has-tasks' : ''}">
+                    <div class="text-center font-medium">${day}</div>
+                    ${hasTasks ? '<div class="text-xs text-center text-blue-600">●</div>' : ''}
+                </div>
+            `;
+        }
+        
+        grid.innerHTML = html;
+    }
+
+    function changeMonth(delta) {
+        calendarDate.setMonth(calendarDate.getMonth() + delta);
+        renderCalendar();
+    }
+
+    function selectCalendarDate(date) {
+        selectedDate = date;
+        document.getElementById('dateSelector').value = date;
+        const saved = localStorage.getItem(`tasks-${date}`);
+        const tasks = saved ? JSON.parse(saved) : [];
+        
+        const list = document.getElementById('calendarTaskList');
+        if(tasks.length === 0) {
+            list.innerHTML = '<p class="text-gray-500">No tasks for this date</p>';
+        } else {
+            list.innerHTML = tasks.map(t => `
+                <div class="flex items-center gap-2 py-2">
+                    <span>${t.completed ? '✅' : '⭕'}</span>
+                    <span class="${t.completed ? 'line-through text-gray-500' : ''}">${escapeHtml(t.text)}</span>
+                </div>
+            `).join('');
+        }
+    }
+
+    // TIMER (POMODORO)
+    function updateTimerDisplay() {
+        const mins = Math.floor(timerSeconds / 60);
+        const secs = timerSeconds % 60;
+        document.getElementById('timerDisplay').textContent = 
+            `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        
+        const totalSeconds = timerMode === 'focus' ? 1500 : timerMode === 'short' ? 300 : 900;
+        const progress = ((totalSeconds - timerSeconds) / totalSeconds) * 283;
+        document.getElementById('timerCircle').style.strokeDashoffset = progress;
+    }
+
+    function startTimer() {
+        if(timerRunning) return;
+        timerRunning = true;
+        document.getElementById('startBtn').classList.add('hidden');
+        document.getElementById('pauseBtn').classList.remove('hidden');
+        
+        timerInterval = setInterval(() => {
+            timerSeconds--;
+            updateTimerDisplay();
+            
+            if(timerSeconds <= 0) {
+                completePomodoro();
+            }
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        timerRunning = false;
+        clearInterval(timerInterval);
+        document.getElementById('startBtn').classList.remove('hidden');
+        document.getElementById('pauseBtn').classList.add('hidden');
+    }
+
+    function resetTimer() {
+        pauseTimer();
+        setTimerMode(timerMode);
+    }
+
+    function setTimerMode(mode) {
+        timerMode = mode;
+        pauseTimer();
+        
+        if(mode === 'focus') {
+            timerSeconds = 1500;
+            document.getElementById('timerMode').textContent = 'Focus Time';
+        } else if(mode === 'short') {
+            timerSeconds = 300;
+            document.getElementById('timerMode').textContent = 'Short Break';
+        } else {
+            timerSeconds = 900;
+            document.getElementById('timerMode').textContent = 'Long Break';
+        }
+        
+        updateTimerDisplay();
+    }
+
+    function completePomodoro() {
+        pauseTimer();
+        
+        if(timerMode === 'focus') {
+            pomodorosToday++;
+            focusTimeToday += 25;
+            
+            if(currentTimerTask) {
+                tasks = tasks.map(t => {
+                    if(t.id === currentTimerTask) {
+                        return {...t, timeSpent: (t.timeSpent || 0) + 1500};
+                    }
+                    return t;
+                });
+                saveTasks();
+            }
+            
+            savePomodoroStats();
+            alert('🎉 Pomodoro complete! Take a break!');
+            setTimerMode('short');
+        } else {
+            alert('✅ Break complete! Ready for another focus session?');
+            setTimerMode('focus');
+        }
+    }
+
+    function updateTimerTaskList() {
+        const saved = localStorage.getItem(`tasks-${selectedDate}`);
+        const todayTasks = saved ? JSON.parse(saved) : [];
+        const incompleteTasks = todayTasks.filter(t => !t.completed);
+        
+        const list = document.getElementById('timerTaskList');
+        if(incompleteTasks.length === 0) {
+            list.innerHTML = '<p class="text-gray-500 text-sm">No tasks for today. Add some first!</p>';
+        } else {
+            list.innerHTML = incompleteTasks.map(t => `
+                <button onclick="selectTimerTask(${t.id})" 
+                        class="w-full text-left p-3 rounded-lg border-2 hover:border-blue-500 ${currentTimerTask === t.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}">
+                    ${escapeHtml(t.text)}
+                </button>
+            `).join('');
+        }
+    }
+
+    function selectTimerTask(id) {
+        currentTimerTask = id;
+        updateTimerTaskList();
+    }
+
+    function loadPomodoroStats() {
+        const today = new Date().toISOString().split('T')[0];
+        const stats = JSON.parse(localStorage.getItem(`pomodoro-${today}`) || '{"pomodoros":0,"focusTime":0}');
+        pomodorosToday = stats.pomodoros;
+        focusTimeToday = stats.focusTime;
+        document.getElementById('pomodorosToday').textContent = pomodorosToday;
+        document.getElementById('focusTimeToday').textContent = focusTimeToday + 'm';
+    }
+
+    function savePomodoroStats() {
+        const today = new Date().toISOString().split('T')[0];
+        localStorage.setItem(`pomodoro-${today}`, JSON.stringify({
+            pomodoros: pomodorosToday,
+            focusTime: focusTimeToday
+        }));
+        loadPomodoroStats();
+    }
+
+    function exportPDF() {
+        const {jsPDF} = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(20);
+        doc.text('Daily Task Report', 20, 20);
+        doc.setFontSize(12);
+        doc.text(`Date: ${new Date(selectedDate).toLocaleDateString()}`, 20, 30);
+        doc.text(`Tasks: ${tasks.filter(t => t.completed).length}/${tasks.length}`, 20, 40);
+        doc.line(20, 45, 190, 45);
+        
+        let y = 55;
+        tasks.forEach(t => {
+            if(y > 270) { doc.addPage(); y = 20; }
+            doc.text(t.completed ? '☑' : '☐', 20, y);
+            doc.text(doc.splitTextToSize(t.text, 150), 30, y);
+            y += 8;
+            
+            if(t.subtasks && t.subtasks.length) {
+                t.subtasks.forEach(st => {
+                    if(y > 270) { doc.addPage(); y = 20; }
+                    doc.setFontSize(10);
+                    doc.text(`  ${st.completed ? '✓' : '○'} ${st.text}`, 35, y);
+                    doc.setFontSize(12);
+                    y += 6;
+                });
+                y += 2;
+            }
+        });
+        
+        doc.save(`tasks-${selectedDate}.pdf`);
+    }
+
+    function openManageData() {
+        alert('Settings: Export/Import coming soon! For now, use browser devtools → Application → Local Storage');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    window.toggleTask = toggleTask;
+    window.toggleSubtask = toggleSubtask;
+    window.deleteTask = deleteTask;
+    window.removePendingFile = removePendingFile;
+    window.viewAttachment = viewAttachment;
+    window.closeModal = closeModal;
+    window.openSubtaskModal = openSubtaskModal;
+    window.closeSubtaskModal = closeSubtaskModal;
+    window.addSubtask = addSubtask;
+    window.removeSubtask = removeSubtask;
+    window.switchView = switchView;
+    window.changeMonth = changeMonth;
+    window.selectCalendarDate = selectCalendarDate;
+    window.startTimer = startTimer;
+    window.pauseTimer = pauseTimer;
+    window.resetTimer = resetTimer;
+    window.setTimerMode = setTimerMode;
+    window.selectTimerTask = selectTimerTask;
+    window.exportPDF = exportPDF;
+    window.capturePhoto = capturePhoto;
+    window.captureVideo = captureVideo;
+    window.recordAudio = recordAudio;
+    window.openManageData = openManageData;
+</script>
+```
+
+</body>
+</html>. 
